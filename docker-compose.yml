@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: client-builder
+    ports:
+      - "3000:80"
+    volumes:
+      - ./client/src:/app/client/src
+    environment:
+      - NODE_ENV=development
+    command: npm run dev -- --host 0.0.0.0 --port 80
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: server-builder
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./server/src:/app/server/src
+    environment:
+      - SERVER_PORT=3001
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    command: npx tsx watch src/index.ts
+
+  # Production build (single container)
+  production:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "80:80"
+      - "3001:3001"
+    environment:
+      - SERVER_PORT=3001
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+    profiles:
+      - production
